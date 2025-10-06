@@ -1,42 +1,26 @@
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signUpSchema } from "../features/auth/authSchema";
+import { useDispatch } from "react-redux";
+import { signUpHandler } from "../features/auth/authSlice";
 
 const SignUp = () => {
-  const signUpSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    mobile: z
-      .string()
-      .min(10, "Min length should be 10...")
-      .max(10, "Max length should be 10..."),
-    password: z.string().min(6, "password length should be atleast 6..."),
-  });
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({ resolver: zodResolver(signUpSchema) });
 
-  const navigate = useNavigate();
-
   const submitHandler = async (info) => {
-    try {
-      console.log(info);
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`,
-        { name: info.name, mobile: info.mobile, password: info.password },
-        { withCredentials: true }
-      );
-      alert(data.message);
-      if (data.success) {
-        window.localStorage.setItem("isLoggedIn", true);
-        navigate("/");
-        window.location.reload();
-      }
-    } catch (err) {
-      console.log("Submit error:", err.message);
+    const data = await dispatch(signUpHandler(info));
+    if (data.payload.success) {
+      reset();
+      navigate("/");
+      navigate(0);
     }
   };
 
@@ -91,9 +75,16 @@ const SignUp = () => {
             type="submit"
             className="outline-none border rounded-2xl px-2 py-1 w-[100px] mt-5 cursor-pointer "
           >
-            Submit
+            Sign Up
           </button>
         </form>
+
+        <div className="mt-10 text-[20px] ">
+          Already have{" "}
+          <a href="/" className="underline ms-1 ">
+            Login
+          </a>
+        </div>
       </div>
     </>
   );

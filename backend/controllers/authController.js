@@ -16,12 +16,12 @@ export const signUp = async (req, res) => {
       where: { mobile: mobileNum },
     });
 
-    if (isEnrolled)
+    if (isEnrolled) {
       return res.json({
         success: false,
         message: "Mobile number already registered!",
       });
-
+    }
     const hashedPass = await bcrypt.hash(password, 10);
 
     const newUser = await prisma.account.create({
@@ -91,7 +91,6 @@ export const login = async (req, res) => {
         expiresIn: "1d",
       }
     );
-
 
     res.cookie("token", token, {
       maxAge: 24 * 60 * 60 * 1000,

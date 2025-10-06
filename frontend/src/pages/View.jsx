@@ -1,57 +1,53 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { deleteHandler } from "../features/customer/customerSlice";
+import { getCustomers } from "../features/customer/customerSlice";
 
-const View = ({ isAdmin }) => {
-  const [users, setUsers] = useState([]);
-
+const View = () => {
   const navigate = useNavigate();
-
-  const deleteHandler = async (id) => {
-    try {
-      const { data } = await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/user/delete/${id}`,
-        { withCredentials: true }
-      );
-
-      alert(data.message);
-    } catch (err) {
-      console.log("Fetch error: ", err.message);
-    }
-  };
+  const dispatch = useDispatch();
+  const { customersData } = useSelector((state) => state.customers);
+  const { isAdmin } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    const getData = async () => {
-      try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/user/get`,
-          { withCredentials: true }
-        );
+    dispatch(getCustomers());
+  }, []);
 
-        if (data.success) {
-          setUsers(data.message);
-        } else {
-          console.log(`Server error: ${data.message}`);
-        }
-      } catch (err) {
-        console.log("Fetching error: ", err.message);
-      }
-    };
-    getData();
-  }, [deleteHandler]);
+  const deleteOne = async (id) => {
+    await dispatch(deleteHandler(id));
+    dispatch(getCustomers());
+  };
+
+  const logoutHandler = () => {
+    localStorage.clear();
+    navigate("/login"); 
+  };
 
   return (
     <div className="w-[1000px]">
       <div className="flex items-center justify-items-center justify-between">
         <h1 className=" font-bold text-3xl ">User's data</h1>
-        {isAdmin && (
-          <a href="/add" className="underline-none text-blue-500 text-[20px] ">
-            Add new
-          </a>
-        )}
+        <div className="flex gap-3">
+          {isAdmin && (
+            <a
+              href="/add"
+              className="underline-none border rounded-2xl px-2 py-1 text-blue-500 text-[20px] "
+            >
+              Add new
+            </a>
+          )}
+          <button
+            className="text-[20px] text-red-300 cursor-pointer border rounded-2xl px-2 py-1 "
+            onClick={logoutHandler}
+          >
+            Logout
+          </button>
+        </div>
       </div>
       <div className="grid gap-5 mt-5 ">
-        {users.length > 0 ? (
+        {customersData.length > 0 ? (
           <table className="">
             <thead>
               <tr>
@@ -62,7 +58,7 @@ const View = ({ isAdmin }) => {
               </tr>
             </thead>
             <tbody className="">
-              {users.map((user) => (
+              {customersData.map((user) => (
                 <tr className="py-5 border-b" key={user.id}>
                   <td>{user.id}</td>
                   <td>{user.name}</td>
@@ -76,7 +72,7 @@ const View = ({ isAdmin }) => {
                         Edit
                       </button>
                       <button
-                        onClick={() => deleteHandler(user.id)}
+                        onClick={() => deleteOne(user.id)}
                         className="cursor-pointer border rounded-2xl px-4 py-1"
                       >
                         Delete
@@ -88,7 +84,7 @@ const View = ({ isAdmin }) => {
             </tbody>
           </table>
         ) : (
-          <h1 className="text-2xl">No users found...</h1>
+          <h1 className="text-2xl">No customers found...</h1>
         )}
       </div>
     </div>

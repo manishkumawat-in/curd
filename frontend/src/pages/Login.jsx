@@ -3,42 +3,26 @@ import { useNavigate } from "react-router-dom";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { loginSchema } from "../features/auth/authSchema";
+import { useDispatch } from "react-redux";
+import { loginHandler } from "../features/auth/authSlice";
 
 const Login = () => {
-  const signUpSchema = z.object({
-    mobile: z
-      .string()
-      .min(10, "Min length should be 10...")
-      .max(10, "Max length should be 10..."),
-    password: z.string().min(6, "password length should be atleast 6..."),
-  });
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(signUpSchema) });
-
-  const navigate = useNavigate();
+    reset,
+  } = useForm({ resolver: zodResolver(loginSchema) });
 
   const submitHandler = async (info) => {
-    try {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
-        { mobile: info.mobile, password: info.password },
-        { withCredentials: true }
-      );
-
-      alert(data.message);
-      if (data.success) {
-        window.localStorage.setItem("isLoggedIn", true);
-        if (data.userData.role === "admin") {
-          window.localStorage.setItem("isAdmin", true);
-        }
-        navigate("/");
-        window.location.reload();
-      }
-    } catch (err) {
-      console.log("Submit error:", err.message);
+    const data = await dispatch(loginHandler(info));
+    if (data.payload.success) {
+      reset();
+      navigate("/");
+      navigate(0);
     }
   };
 
@@ -80,7 +64,7 @@ const Login = () => {
             type="submit"
             className="outline-none border rounded-2xl px-2 py-1 w-[100px] mt-5 cursor-pointer "
           >
-            Submit
+            Login
           </button>
         </form>
 

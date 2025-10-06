@@ -4,7 +4,7 @@ export const getAll = async (req, res) => {
   try {
     const users = await prisma.user.findMany();
 
-    return res.json({ success: true, message: users });
+    return res.json({ success: true, customers: users });
   } catch (err) {
     return res.json({
       success: false,
@@ -16,16 +16,17 @@ export const getAll = async (req, res) => {
 export const Add = async (req, res) => {
   let { name, contact } = req.body;
 
-  contact = parseInt(contact);
   if (!name || !contact) {
     return res.json({ success: false, message: "All fields are required" });
   }
   try {
-
-    const isExistUser = await prisma.user.findFirst({where: {contact}});
+    const isExistUser = await prisma.user.findFirst({ where: { contact } });
 
     if (isExistUser) {
-      return res.json({ success: false, message: "User number alredy exists!" });
+      return res.json({
+        success: false,
+        message: "User number alredy exists!",
+      });
     }
 
     const newUser = await prisma.user.create({ data: { name, contact } });
@@ -45,7 +46,7 @@ export const deleteUser = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "User dleted successfully...",
+      message: " deleted successfully...",
       deletedUser,
     });
   } catch (err) {
@@ -57,8 +58,6 @@ export const deleteUser = async (req, res) => {
 export const update = async (req, res) => {
   let { name, contact } = req.body;
   const id = parseInt(req.params.id);
-  
-  contact = parseInt(contact);
 
   if (!name || !contact) {
     return res.json({ success: false, message: "All fields are required" });

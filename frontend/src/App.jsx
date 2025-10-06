@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
 import "./App.css";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import View from "./pages/View.jsx";
 import Add from "./pages/Add.jsx";
 import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx";
 
+
 function App() {
+  const { isLoggedIn, isAdmin } = useSelector((state) => state.auth);
+
   return (
     <>
       <Routes>
         <Route
           path="/"
           element={
-            localStorage.getItem("isLoggedIn") ? (
-              <View isAdmin={localStorage.getItem("isAdmin")} /> //= userData.role === "admin"
+            isLoggedIn ? (
+              <View /> //= userData.role === "admin"
             ) : (
               <Navigate to={"/login"} replace />
             )
@@ -23,7 +26,7 @@ function App() {
         <Route
           path="/add"
           element={
-            localStorage.getItem("isAdmin") ? (
+            isAdmin ? (
               <Add />
             ) : (
               <h1>Only admin can access this page</h1>

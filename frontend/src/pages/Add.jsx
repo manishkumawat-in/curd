@@ -1,19 +1,15 @@
 import { useEffect } from "react";
-import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
-import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-const addSchema = z.object({
-  name: z.string().min(1, "Please enter name..."),
-  contact: z
-    .string()
-    .min(10, "Min mobile number length is be 10...")
-    .max(10, "Max mobile number length is be 10..."),
-});
+import { customerSchema } from "../features/customer/customerSchema";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { add, update } from "../features/customer/customerSlice";
 
 const Add = () => {
+  const {} = useSelector((state) => state.customers);
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   let isNew = !location.state;
@@ -25,7 +21,7 @@ const Add = () => {
     reset,
     getValues,
   } = useForm({
-    resolver: zodResolver(addSchema),
+    resolver: zodResolver(customerSchema),
     defaultValues: { id: "", name: "", contact: "" },
   });
 
@@ -41,32 +37,19 @@ const Add = () => {
   }, []);
 
   const submitHandler = async (info) => {
-    try {
-      if (isNew) {
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/api/user/add`,
-          {
-            name: info.name,
-            contact: info.contact,
-          },
-          { withCredentials: true }
-        );
-        alert(data.message);
-      } else {
-        console.log("update");
+    if (isNew) {
+      const data = await dispatch(add(info));
 
-        const { data } = await axios.put(
-          `${import.meta.env.VITE_BACKEND_URL}/api/user/update/${getValues(
-            "id"
-          )}`,
-          { name: info.name, contact: info.contact },
-          { withCredentials: true }
-        );
-        alert(data.message);
+      if (data.payload.success) {
+        reset();
+      }
+      reset();
+    } else {
+      info.id = getValues("id");
+      const data = await dispatch(update(info));
+      if (data.payload.success) {
         navigate("/");
       }
-    } catch (error) {
-      console.log("Submiting error: ", error.message);
     }
   };
 
@@ -110,7 +93,7 @@ const Add = () => {
           type="submit"
           className="cursor-pointer border rounded-2xl px-4 py-2 mt-5 w-[150px] "
         >
-          Submit
+          Add
         </button>
       </form>
 
